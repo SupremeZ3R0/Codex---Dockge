@@ -1,6 +1,6 @@
 # ResumeLibraryBuilder
 
-PowerShell utility for combining tailored job-application resumes into one formatted Word document and one plain text file for AI-assisted resume tailoring.
+PowerShell utility for combining tailored job-application resumes and cover letters into formatted Word documents and plain text files for AI-assisted resume tailoring.
 
 ## Folder layout expected
 

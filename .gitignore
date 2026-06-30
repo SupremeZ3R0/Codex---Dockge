@@ -1,0 +1,11 @@
+# Generated ResumeLibraryBuilder output files
+ResumeLibraryBuilder/Output/*
+!ResumeLibraryBuilder/Output/.gitkeep
+
+# Windows/macOS clutter
+Thumbs.db
+.DS_Store
+
+# PowerShell/editor temporary files
+*.tmp
+~$*
