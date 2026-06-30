@@ -36,7 +36,7 @@ try {
     Write-Log "Output folder: $OutputFolder" "INFO"
 
     $Applications = Find-JobApplications -RootFolder $RootFolder `
-        -ResumeKeywords $ResumeKeywords `
+        -ResumeTitle $ResumeTitle `
         -CoverLetterKeywords $CoverLetterKeywords `
         -SupportedExtensions $SupportedExtensions `
         -PreferDocx:$PreferDocx
@@ -54,6 +54,14 @@ try {
 
         Export-CombinedResumeText -Applications $Applications `
             -OutputPath (Join-Path $OutputFolder $CombinedResumeTxtName) `
+            -WordContext $WordContext
+
+        Export-CombinedCoverLetterDocx -Applications $Applications `
+            -OutputPath (Join-Path $OutputFolder $CombinedCoverLetterDocxName) `
+            -WordContext $WordContext
+
+        Export-CombinedCoverLetterText -Applications $Applications `
+            -OutputPath (Join-Path $OutputFolder $CombinedCoverLetterTxtName) `
             -WordContext $WordContext
     }
     finally {

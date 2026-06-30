@@ -11,12 +11,14 @@ MainFolder/
       Resume.docx
 ```
 
-The script scans `Company Name/Job Name` folders, finds Word resume files by keywords such as `resume` or `cv`, then writes all generated files to `ResumeLibraryBuilder/Output` by default.
+The script scans `Company Name/Job Name` folders, finds resumes titled `Bramhadev Emogaje Resume`, detects cover letters by keyword, then writes all generated files to `ResumeLibraryBuilder/Output` by default.
 
 ## Outputs
 
-- `Combined_Resumes.docx` — formatted Word document using Word's `InsertFile()` to preserve resume formatting.
-- `Combined_Resumes.txt` — plain text version separated by company/job metadata.
+- `Combined_Resumes.docx` — formatted Word document using Word's `InsertFile()` to preserve resume formatting, with only company and job headings.
+- `Combined_Resumes.txt` — plain text version separated by full company/job/file/folder metadata.
+- `Combined_CoverLetters.docx` — formatted Word document combining detected cover letters.
+- `Combined_CoverLetters.txt` — plain text cover-letter export separated by full metadata.
 - `Applications_Index.json` — machine-readable index of detected applications.
 - `ScanReport.txt` — human-readable scan report.
 - `CombineLog.txt` — log file.
@@ -42,4 +44,5 @@ Or override the root folder without editing config:
 
 - Temporary Word files beginning with `~$` are skipped.
 - `.docx` and `.doc` files are supported.
+- Resume discovery expects files titled `Bramhadev Emogaje Resume` before the extension. Copies like `Bramhadev Emogaje Resume (1).docx` are also accepted.
 - PDF extraction is intentionally not included in this first working version because preserving formatting reliably requires a separate PDF pipeline.

@@ -3,6 +3,11 @@ function Test-TemporaryWordFile {
     return $File.Name -like '~$*'
 }
 
+function ConvertTo-NormalizedFileTitle {
+    param([Parameter(Mandatory)][string]$Value)
+    return ($Value.ToLowerInvariant() -replace '[^a-z0-9]+', ' ').Trim()
+}
+
 function Get-KeywordScore {
     param(
         [Parameter(Mandatory)][System.IO.FileInfo]$File,
@@ -18,6 +23,28 @@ function Get-KeywordScore {
     if ($File.Extension -ieq ".doc") { $score += 1 }
     $score += [Math]::Min([int]($File.Length / 1KB), 5)
     return $score
+}
+
+function Select-ResumeFile {
+    param(
+        [Parameter(Mandatory)][System.IO.FileInfo[]]$Files,
+        [Parameter(Mandatory)][string]$ResumeTitle,
+        [switch]$PreferDocx
+    )
+
+    $expectedTitle = ConvertTo-NormalizedFileTitle -Value $ResumeTitle
+    $matches = $Files | Where-Object {
+        $fileTitle = ConvertTo-NormalizedFileTitle -Value $_.BaseName
+        $fileTitle -eq $expectedTitle -or $fileTitle -like "$expectedTitle*"
+    }
+
+    if (-not $matches) { return $null }
+
+    $matches |
+        Sort-Object @{ Expression = { if ((ConvertTo-NormalizedFileTitle -Value $_.BaseName) -eq $expectedTitle) { 0 } else { 1 } } },
+                    @{ Expression = { if ($PreferDocx -and $_.Extension -ieq ".docx") { 0 } else { 1 } } },
+                    LastWriteTime -Descending |
+        Select-Object -First 1
 }
 
 function Select-BestFile {
@@ -45,7 +72,7 @@ function Find-JobApplications {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$RootFolder,
-        [Parameter(Mandatory)][string[]]$ResumeKeywords,
+        [Parameter(Mandatory)][string]$ResumeTitle,
         [Parameter(Mandatory)][string[]]$CoverLetterKeywords,
         [Parameter(Mandatory)][string[]]$SupportedExtensions,
         [switch]$PreferDocx
@@ -76,7 +103,7 @@ function Find-JobApplications {
 
         if (-not $files) { continue }
 
-        $resume = Select-BestFile -Files $files -Keywords $ResumeKeywords -PreferDocx:$PreferDocx
+        $resume = Select-ResumeFile -Files $files -ResumeTitle $ResumeTitle -PreferDocx:$PreferDocx
         $cover = Select-BestFile -Files $files -Keywords $CoverLetterKeywords -PreferDocx:$PreferDocx
 
         if ($resume -or $cover) {
