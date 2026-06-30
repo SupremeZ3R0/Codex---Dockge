@@ -26,7 +26,7 @@ function Add-ApplicationTextBlock {
     $Builder.AppendLine("============================================================") | Out-Null
     $Builder.AppendLine("Company: $($Application.Company)") | Out-Null
     $Builder.AppendLine("Job: $($Application.Job)") | Out-Null
-    $Builder.AppendLine("$FileLabel: $FileName") | Out-Null
+    $Builder.AppendLine("${FileLabel}: $FileName") | Out-Null
     $Builder.AppendLine("Folder: $($Application.RelativePath)") | Out-Null
     $Builder.AppendLine("============================================================") | Out-Null
     $Builder.AppendLine($Text) | Out-Null

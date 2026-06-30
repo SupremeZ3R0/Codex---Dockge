@@ -40,6 +40,17 @@ Or override the root folder without editing config:
 .\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\YourName\Documents\Post-College"
 ```
 
+## Troubleshooting
+
+### Execution policy
+
+Run the execution-policy command before running the build script in the same PowerShell window:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\YourName\Documents\Post-College"
+```
+
 ## Notes
 
 - Temporary Word files beginning with `~$` are skipped.
