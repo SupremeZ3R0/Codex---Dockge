@@ -56,4 +56,5 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 - Temporary Word files beginning with `~$` are skipped.
 - `.docx` and `.doc` files are supported.
 - Resume discovery expects files titled `Bramhadev Emogaje Resume` before the extension. Copies like `Bramhadev Emogaje Resume (1).docx` are also accepted.
+- Combined Word documents use configurable margins that default to top `1`, bottom `0.6`, left `0.5`, and right `0.5` inches.
 - PDF extraction is intentionally not included in this first working version because preserving formatting reliably requires a separate PDF pipeline.

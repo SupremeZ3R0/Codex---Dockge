@@ -11,6 +11,28 @@ function New-WordContext {
     }
 }
 
+function Convert-InchesToWordPoints {
+    param([Parameter(Mandatory)][double]$Inches)
+    return $Inches * 72
+}
+
+function Set-DocumentMargins {
+    param(
+        [Parameter(Mandatory)]$Document,
+        [Parameter(Mandatory)][double]$TopInches,
+        [Parameter(Mandatory)][double]$BottomInches,
+        [Parameter(Mandatory)][double]$LeftInches,
+        [Parameter(Mandatory)][double]$RightInches
+    )
+
+    foreach ($section in $Document.Sections) {
+        $section.PageSetup.TopMargin = Convert-InchesToWordPoints -Inches $TopInches
+        $section.PageSetup.BottomMargin = Convert-InchesToWordPoints -Inches $BottomInches
+        $section.PageSetup.LeftMargin = Convert-InchesToWordPoints -Inches $LeftInches
+        $section.PageSetup.RightMargin = Convert-InchesToWordPoints -Inches $RightInches
+    }
+}
+
 function Add-SimpleApplicationHeading {
     param(
         [Parameter(Mandatory)]$Document,
@@ -21,8 +43,18 @@ function Add-SimpleApplicationHeading {
     $range.Collapse(0)
     if ($Document.Content.End -gt 1) { $range.InsertBreak(7) }
 
-    $range.InsertAfter("$($Application.Company)`r")
-    $range.InsertAfter("$($Application.Job)`r`r")
+    $headingStart = $range.Start
+    $range.InsertAfter("$($Application.Company) - $($Application.Job)`r")
+
+    $headingRange = $Document.Range($headingStart, $range.End)
+    $headingRange.Font.Bold = $true
+    $headingRange.ParagraphFormat.Alignment = 0
+    $headingRange.ParagraphFormat.LeftIndent = 0
+    $headingRange.ParagraphFormat.FirstLineIndent = 0
+    $headingRange.ParagraphFormat.SpaceBefore = 0
+    $headingRange.ParagraphFormat.SpaceAfter = 0
+    $headingRange.ParagraphFormat.LineSpacingRule = 0
+    $headingRange.ParagraphFormat.TabStops.ClearAll()
 }
 
 function Export-CombinedResumeDocx {
@@ -30,13 +62,23 @@ function Export-CombinedResumeDocx {
     param(
         [Parameter(Mandatory)]$Applications,
         [Parameter(Mandatory)][string]$OutputPath,
-        [Parameter(Mandatory)]$WordContext
+        [Parameter(Mandatory)]$WordContext,
+        [Parameter(Mandatory)][double]$MarginTopInches,
+        [Parameter(Mandatory)][double]$MarginBottomInches,
+        [Parameter(Mandatory)][double]$MarginLeftInches,
+        [Parameter(Mandatory)][double]$MarginRightInches
     )
 
     $word = $WordContext.Application
     $document = $word.Documents.Add()
 
     try {
+        Set-DocumentMargins -Document $document `
+            -TopInches $MarginTopInches `
+            -BottomInches $MarginBottomInches `
+            -LeftInches $MarginLeftInches `
+            -RightInches $MarginRightInches
+
         $withResumes = @($Applications | Where-Object { $_.ResumePath })
         $i = 0
         foreach ($application in $withResumes) {
@@ -49,6 +91,12 @@ function Export-CombinedResumeDocx {
             $range.Collapse(0)
             $range.InsertFile($application.ResumePath)
         }
+
+        Set-DocumentMargins -Document $document `
+            -TopInches $MarginTopInches `
+            -BottomInches $MarginBottomInches `
+            -LeftInches $MarginLeftInches `
+            -RightInches $MarginRightInches
 
         Write-Progress -Activity "Building resume Word document" -Completed
         $document.SaveAs([ref]$OutputPath)
@@ -65,13 +113,23 @@ function Export-CombinedCoverLetterDocx {
     param(
         [Parameter(Mandatory)]$Applications,
         [Parameter(Mandatory)][string]$OutputPath,
-        [Parameter(Mandatory)]$WordContext
+        [Parameter(Mandatory)]$WordContext,
+        [Parameter(Mandatory)][double]$MarginTopInches,
+        [Parameter(Mandatory)][double]$MarginBottomInches,
+        [Parameter(Mandatory)][double]$MarginLeftInches,
+        [Parameter(Mandatory)][double]$MarginRightInches
     )
 
     $word = $WordContext.Application
     $document = $word.Documents.Add()
 
     try {
+        Set-DocumentMargins -Document $document `
+            -TopInches $MarginTopInches `
+            -BottomInches $MarginBottomInches `
+            -LeftInches $MarginLeftInches `
+            -RightInches $MarginRightInches
+
         $withCoverLetters = @($Applications | Where-Object { $_.CoverLetterPath })
         $i = 0
         foreach ($application in $withCoverLetters) {
@@ -84,6 +142,12 @@ function Export-CombinedCoverLetterDocx {
             $range.Collapse(0)
             $range.InsertFile($application.CoverLetterPath)
         }
+
+        Set-DocumentMargins -Document $document `
+            -TopInches $MarginTopInches `
+            -BottomInches $MarginBottomInches `
+            -LeftInches $MarginLeftInches `
+            -RightInches $MarginRightInches
 
         Write-Progress -Activity "Building cover letter Word document" -Completed
         $document.SaveAs([ref]$OutputPath)
