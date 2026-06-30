@@ -33,18 +33,48 @@ function Set-DocumentMargins {
     }
 }
 
+
+function Remove-TrailingBlankContent {
+    param([Parameter(Mandatory)]$Document)
+
+    # Word documents always need a final paragraph mark. This removes only extra
+    # trailing blank paragraphs and manual page/section breaks that can create
+    # blank pages between inserted files.
+    $maxDeletes = 20
+    while ($maxDeletes -gt 0 -and $Document.Content.End -gt 3) {
+        $end = $Document.Content.End
+        $lastCharacter = $Document.Range($end - 2, $end - 1)
+        $lastText = $lastCharacter.Text
+        $lastTwoCharacters = $Document.Range($end - 3, $end - 1).Text
+
+        if ($lastText -eq ([string][char]12)) {
+            $lastCharacter.Delete() | Out-Null
+        }
+        elseif ($lastTwoCharacters -eq "`r`r") {
+            $lastCharacter.Delete() | Out-Null
+        }
+        else {
+            break
+        }
+
+        $maxDeletes--
+    }
+}
+
 function Add-SimpleApplicationHeading {
     param(
         [Parameter(Mandatory)]$Document,
         [Parameter(Mandatory)]$Application
     )
 
+    Remove-TrailingBlankContent -Document $Document
+
     $range = $Document.Range()
     $range.Collapse(0)
     if ($Document.Content.End -gt 1) { $range.InsertBreak(7) }
 
     $headingStart = $range.Start
-    $range.InsertAfter("$($Application.Company) - $($Application.Job)`r")
+    $range.InsertAfter("$($Application.Company) - $($Application.Job)`r`r")
 
     $headingRange = $Document.Range($headingStart, $range.End)
     $headingRange.Font.Bold = $true
@@ -90,6 +120,7 @@ function Export-CombinedResumeDocx {
             $range = $document.Range()
             $range.Collapse(0)
             $range.InsertFile($application.ResumePath)
+            Remove-TrailingBlankContent -Document $document
         }
 
         Set-DocumentMargins -Document $document `
@@ -141,6 +172,7 @@ function Export-CombinedCoverLetterDocx {
             $range = $document.Range()
             $range.Collapse(0)
             $range.InsertFile($application.CoverLetterPath)
+            Remove-TrailingBlankContent -Document $document
         }
 
         Set-DocumentMargins -Document $document `

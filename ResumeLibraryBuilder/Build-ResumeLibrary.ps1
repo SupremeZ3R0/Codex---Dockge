@@ -51,10 +51,10 @@ try {
         Export-CombinedResumeDocx -Applications $Applications `
             -OutputPath (Join-Path $OutputFolder $CombinedResumeDocxName) `
             -WordContext $WordContext `
-            -MarginTopInches $DocMarginTopInches `
-            -MarginBottomInches $DocMarginBottomInches `
-            -MarginLeftInches $DocMarginLeftInches `
-            -MarginRightInches $DocMarginRightInches
+            -MarginTopInches $ResumeDocMarginTopInches `
+            -MarginBottomInches $ResumeDocMarginBottomInches `
+            -MarginLeftInches $ResumeDocMarginLeftInches `
+            -MarginRightInches $ResumeDocMarginRightInches
 
         Export-CombinedResumeText -Applications $Applications `
             -OutputPath (Join-Path $OutputFolder $CombinedResumeTxtName) `
@@ -63,10 +63,10 @@ try {
         Export-CombinedCoverLetterDocx -Applications $Applications `
             -OutputPath (Join-Path $OutputFolder $CombinedCoverLetterDocxName) `
             -WordContext $WordContext `
-            -MarginTopInches $DocMarginTopInches `
-            -MarginBottomInches $DocMarginBottomInches `
-            -MarginLeftInches $DocMarginLeftInches `
-            -MarginRightInches $DocMarginRightInches
+            -MarginTopInches $CoverLetterDocMarginTopInches `
+            -MarginBottomInches $CoverLetterDocMarginBottomInches `
+            -MarginLeftInches $CoverLetterDocMarginLeftInches `
+            -MarginRightInches $CoverLetterDocMarginRightInches
 
         Export-CombinedCoverLetterText -Applications $Applications `
             -OutputPath (Join-Path $OutputFolder $CombinedCoverLetterTxtName) `

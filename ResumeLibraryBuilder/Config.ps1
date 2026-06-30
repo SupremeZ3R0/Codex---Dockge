@@ -14,11 +14,17 @@ $SupportedExtensions = @(".docx", ".doc")
 # Prefer modern Word documents when multiple matching files exist.
 $PreferDocx = $true
 
-# Combined Word document margins, in inches.
-$DocMarginTopInches = 1
-$DocMarginBottomInches = 0.6
-$DocMarginLeftInches = 0.5
-$DocMarginRightInches = 0.5
+# Combined resume Word document margins, in inches.
+$ResumeDocMarginTopInches = 1
+$ResumeDocMarginBottomInches = 0.6
+$ResumeDocMarginLeftInches = 0.5
+$ResumeDocMarginRightInches = 0.5
+
+# Combined cover-letter Word document margins, in inches.
+$CoverLetterDocMarginTopInches = 1
+$CoverLetterDocMarginBottomInches = 1
+$CoverLetterDocMarginLeftInches = 1
+$CoverLetterDocMarginRightInches = 1
 
 # Generated output names.
 $CombinedResumeDocxName = "Combined_Resumes.docx"
