@@ -37,7 +37,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 Or override the root folder without editing config:
 
 ```powershell
-.\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\YourName\Documents\Post-College"
+.\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\Nysup\OneDrive\Documents\Post-College"
 ```
 
 ## Troubleshooting
@@ -48,7 +48,7 @@ Run the execution-policy command before running the build script in the same Pow
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\YourName\Documents\Post-College"
+.\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\Nysup\OneDrive\Documents\Post-College"
 ```
 
 ## Notes

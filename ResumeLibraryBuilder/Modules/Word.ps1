@@ -69,9 +69,9 @@ function Add-SimpleApplicationHeading {
 
     Remove-TrailingBlankContent -Document $Document
 
+    $shouldStartNewPage = $Document.Content.End -gt 1
     $range = $Document.Range()
     $range.Collapse(0)
-    if ($Document.Content.End -gt 1) { $range.InsertBreak(7) }
 
     $headingStart = $range.Start
     $range.InsertAfter("$($Application.Company) - $($Application.Job)`r`r")
@@ -85,6 +85,10 @@ function Add-SimpleApplicationHeading {
     $headingRange.ParagraphFormat.SpaceAfter = 0
     $headingRange.ParagraphFormat.LineSpacingRule = 0
     $headingRange.ParagraphFormat.TabStops.ClearAll()
+
+    # Start the heading on a new page without inserting a standalone manual
+    # page-break paragraph, which can show up as a blank page with one line.
+    $headingRange.Paragraphs.Item(1).Format.PageBreakBefore = $shouldStartNewPage
 }
 
 function Export-CombinedResumeDocx {

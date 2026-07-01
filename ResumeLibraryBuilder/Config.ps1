@@ -1,6 +1,6 @@
 # ResumeLibraryBuilder settings
 # Change this to the top-level folder that contains CompanyName\JobName folders.
-$RootFolder = "C:\Users\YourName\Documents\Post-College"
+$RootFolder = "C:\Users\Nysup\OneDrive\Documents\Post-College"
 
 # Output files are written here. The default keeps generated files inside this project.
 $OutputFolder = Join-Path $PSScriptRoot "Output"
