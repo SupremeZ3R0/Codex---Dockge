@@ -39,17 +39,11 @@ function Export-CombinedResumeText {
     param(
         [Parameter(Mandatory)]$Applications,
         [Parameter(Mandatory)][string]$OutputPath,
-        [Parameter(Mandatory)]$WordContext,
-        [switch]$Append
+        [Parameter(Mandatory)]$WordContext
     )
 
     $builder = New-Object System.Text.StringBuilder
     $withResumes = @($Applications | Where-Object { $_.ResumePath })
-    if ($withResumes.Count -eq 0) {
-        Write-Log "No new resumes to add to TXT: $OutputPath" "INFO"
-        return
-    }
-
     $i = 0
 
     foreach ($application in $withResumes) {
@@ -65,14 +59,8 @@ function Export-CombinedResumeText {
     }
 
     Write-Progress -Activity "Building resume text file" -Completed
-    if ($Append -and (Test-Path -Path $OutputPath -PathType Leaf)) {
-        Add-Content -Path $OutputPath -Value $builder.ToString() -Encoding UTF8
-        Write-Log "Appended resume TXT: $OutputPath" "SUCCESS"
-    }
-    else {
-        $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
-        Write-Log "Saved resume TXT: $OutputPath" "SUCCESS"
-    }
+    $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
+    Write-Log "Saved resume TXT: $OutputPath" "SUCCESS"
 }
 
 function Export-CombinedCoverLetterText {
@@ -80,17 +68,11 @@ function Export-CombinedCoverLetterText {
     param(
         [Parameter(Mandatory)]$Applications,
         [Parameter(Mandatory)][string]$OutputPath,
-        [Parameter(Mandatory)]$WordContext,
-        [switch]$Append
+        [Parameter(Mandatory)]$WordContext
     )
 
     $builder = New-Object System.Text.StringBuilder
     $withCoverLetters = @($Applications | Where-Object { $_.CoverLetterPath })
-    if ($withCoverLetters.Count -eq 0) {
-        Write-Log "No new cover letters to add to TXT: $OutputPath" "INFO"
-        return
-    }
-
     $i = 0
 
     foreach ($application in $withCoverLetters) {
@@ -106,12 +88,6 @@ function Export-CombinedCoverLetterText {
     }
 
     Write-Progress -Activity "Building cover letter text file" -Completed
-    if ($Append -and (Test-Path -Path $OutputPath -PathType Leaf)) {
-        Add-Content -Path $OutputPath -Value $builder.ToString() -Encoding UTF8
-        Write-Log "Appended cover letter TXT: $OutputPath" "SUCCESS"
-    }
-    else {
-        $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
-        Write-Log "Saved cover letter TXT: $OutputPath" "SUCCESS"
-    }
+    $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
+    Write-Log "Saved cover letter TXT: $OutputPath" "SUCCESS"
 }

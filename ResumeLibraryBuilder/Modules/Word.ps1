@@ -34,21 +34,6 @@ function Set-DocumentMargins {
 }
 
 
-function Open-OrCreateWordDocument {
-    param(
-        [Parameter(Mandatory)]$WordApplication,
-        [Parameter(Mandatory)][string]$OutputPath
-    )
-
-    if (Test-Path -Path $OutputPath -PathType Leaf) {
-        Write-Log "Appending to existing DOCX: $OutputPath" "INFO"
-        return $WordApplication.Documents.Open($OutputPath, $false, $false)
-    }
-
-    Write-Log "Creating new DOCX: $OutputPath" "INFO"
-    return $WordApplication.Documents.Add()
-}
-
 function Remove-TrailingBlankContent {
     param([Parameter(Mandatory)]$Document)
 
@@ -118,14 +103,8 @@ function Export-CombinedResumeDocx {
         [Parameter(Mandatory)][double]$MarginRightInches
     )
 
-    $withResumes = @($Applications | Where-Object { $_.ResumePath })
-    if ($withResumes.Count -eq 0) {
-        Write-Log "No new resumes to add to DOCX: $OutputPath" "INFO"
-        return
-    }
-
     $word = $WordContext.Application
-    $document = Open-OrCreateWordDocument -WordApplication $word -OutputPath $OutputPath
+    $document = $word.Documents.Add()
 
     try {
         Set-DocumentMargins -Document $document `
@@ -134,6 +113,7 @@ function Export-CombinedResumeDocx {
             -LeftInches $MarginLeftInches `
             -RightInches $MarginRightInches
 
+        $withResumes = @($Applications | Where-Object { $_.ResumePath })
         $i = 0
         foreach ($application in $withResumes) {
             $i++
@@ -175,14 +155,8 @@ function Export-CombinedCoverLetterDocx {
         [Parameter(Mandatory)][double]$MarginRightInches
     )
 
-    $withCoverLetters = @($Applications | Where-Object { $_.CoverLetterPath })
-    if ($withCoverLetters.Count -eq 0) {
-        Write-Log "No new cover letters to add to DOCX: $OutputPath" "INFO"
-        return
-    }
-
     $word = $WordContext.Application
-    $document = Open-OrCreateWordDocument -WordApplication $word -OutputPath $OutputPath
+    $document = $word.Documents.Add()
 
     try {
         Set-DocumentMargins -Document $document `
@@ -191,6 +165,7 @@ function Export-CombinedCoverLetterDocx {
             -LeftInches $MarginLeftInches `
             -RightInches $MarginRightInches
 
+        $withCoverLetters = @($Applications | Where-Object { $_.CoverLetterPath })
         $i = 0
         foreach ($application in $withCoverLetters) {
             $i++

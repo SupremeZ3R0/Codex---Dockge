@@ -40,10 +40,6 @@ Or override the root folder without editing config:
 .\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\Nysup\OneDrive\Documents\Post-College"
 ```
 
-## Incremental runs
-
-After the first successful run, the script reads `Output\Applications_Index.json` and appends only new or changed resumes/cover letters to the combined Word and text outputs. If one of a paired output is missing, for example `Combined_Resumes.docx` exists but `Combined_Resumes.txt` does not, the script rebuilds that pair to avoid duplicate text entries.
-
 ## Troubleshooting
 
 ### Execution policy
