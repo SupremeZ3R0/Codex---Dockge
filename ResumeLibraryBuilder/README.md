@@ -1,0 +1,64 @@
+# ResumeLibraryBuilder
+
+PowerShell utility for combining tailored job-application resumes and cover letters into formatted Word documents and plain text files for AI-assisted resume tailoring.
+
+## Folder layout expected
+
+```text
+MainFolder/
+  Company Name/
+    Job Name/
+      Resume.docx
+```
+
+The script scans `Company Name/Job Name` folders, finds resumes titled `Bramhadev Emogaje Resume`, detects cover letters by keyword, then writes all generated files to `ResumeLibraryBuilder/Output` by default.
+
+## Outputs
+
+- `Combined_Resumes.docx` — formatted Word document using Word's `InsertFile()` to preserve resume formatting, with only company and job headings.
+- `Combined_Resumes.txt` — plain text version separated by full company/job/file/folder metadata.
+- `Combined_CoverLetters.docx` — formatted Word document combining detected cover letters.
+- `Combined_CoverLetters.txt` — plain text cover-letter export separated by full metadata.
+- `Applications_Index.json` — machine-readable index of detected applications.
+- `ScanReport.txt` — human-readable scan report.
+- `CombineLog.txt` — log file.
+
+## How to run
+
+1. Open PowerShell on Windows with Microsoft Word installed.
+2. Edit `Config.ps1` and set `$RootFolder` to your main job-applications folder.
+3. Run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\Build-ResumeLibrary.ps1
+```
+
+Or override the root folder without editing config:
+
+```powershell
+.\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\Nysup\OneDrive\Documents\Post-College"
+```
+
+## Incremental runs
+
+After the first successful run, the script reads `Output\Applications_Index.json` and appends only new or changed resumes/cover letters to the combined Word and text outputs. If one of a paired output is missing, for example `Combined_Resumes.docx` exists but `Combined_Resumes.txt` does not, the script rebuilds that pair to avoid duplicate text entries.
+
+## Troubleshooting
+
+### Execution policy
+
+Run the execution-policy command before running the build script in the same PowerShell window:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\Nysup\OneDrive\Documents\Post-College"
+```
+
+## Notes
+
+- Temporary Word files beginning with `~$` are skipped.
+- `.docx` and `.doc` files are supported.
+- Resume discovery expects files titled `Bramhadev Emogaje Resume` before the extension. Copies like `Bramhadev Emogaje Resume (1).docx` are also accepted.
+- Combined resume Word documents use configurable margins that default to top `1`, bottom `0.6`, left `0.5`, and right `0.5` inches. Combined cover-letter Word documents default to `1` inch on all sides.
+- PDF extraction is intentionally not included in this first working version because preserving formatting reliably requires a separate PDF pipeline.
