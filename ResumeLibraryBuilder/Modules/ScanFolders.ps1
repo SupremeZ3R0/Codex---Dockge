@@ -75,6 +75,7 @@ function Find-JobApplications {
         [Parameter(Mandatory)][string]$ResumeTitle,
         [Parameter(Mandatory)][string[]]$CoverLetterKeywords,
         [Parameter(Mandatory)][string[]]$SupportedExtensions,
+        [hashtable]$ExistingRelativePaths,
         [switch]$PreferDocx
     )
 
@@ -91,6 +92,10 @@ function Find-JobApplications {
         Write-Progress -Activity "Scanning job folders" -Status $folder.FullName -PercentComplete (($i / [Math]::Max($jobFolders.Count, 1)) * 100)
 
         $relative = $folder.FullName.Substring($root.Length).TrimStart('\', '/')
+        if ($ExistingRelativePaths -and $ExistingRelativePaths.ContainsKey($relative)) {
+            continue
+        }
+
         $parts = $relative -split '[\\/]'
         $company = $parts[0]
         $job = $parts[1]
