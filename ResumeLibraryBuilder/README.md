@@ -51,6 +51,10 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\Build-ResumeLibrary.ps1 -RootFolderOverride "C:\Users\Nysup\OneDrive\Documents\Post-College"
 ```
 
+## Incremental runs
+
+After the first successful run, the builder reads `Applications_Index.json` before exporting combined files. If the matching combined Word and text outputs already exist, it appends only newly discovered resume or cover-letter files instead of rebuilding every existing entry. If the JSON index or one of the matching combined outputs is missing or unreadable, the script safely falls back to a full rebuild for that output type.
+
 ## Notes
 
 - Temporary Word files beginning with `~$` are skipped.

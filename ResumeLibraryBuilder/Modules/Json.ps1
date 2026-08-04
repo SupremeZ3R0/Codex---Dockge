@@ -33,3 +33,31 @@ function Export-ScanReport {
     $lines | Set-Content -Path $OutputPath -Encoding UTF8
     Write-Log "Saved scan report: $OutputPath" "SUCCESS"
 }
+
+function Import-ApplicationsIndex {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$InputPath
+    )
+
+    if (-not (Test-Path -LiteralPath $InputPath)) {
+        Write-Log "No existing JSON index found: $InputPath" "INFO"
+        return @()
+    }
+
+    try {
+        $content = Get-Content -LiteralPath $InputPath -Raw -Encoding UTF8
+        if ([string]::IsNullOrWhiteSpace($content)) {
+            Write-Log "Existing JSON index is empty: $InputPath" "WARN"
+            return @()
+        }
+
+        $applications = @($content | ConvertFrom-Json)
+        Write-Log "Loaded existing JSON index with $($applications.Count) application(s): $InputPath" "INFO"
+        return $applications
+    }
+    catch {
+        Write-Log "Could not read existing JSON index; this run will rebuild combined outputs. $($_.Exception.Message)" "WARN"
+        return @()
+    }
+}
