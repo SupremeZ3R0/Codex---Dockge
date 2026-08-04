@@ -116,8 +116,6 @@ function Find-JobApplications {
                 CoverLetterPath = if ($cover) { $cover.FullName } else { $null }
                 ResumeFile = if ($resume) { $resume.Name } else { $null }
                 CoverLetterFile = if ($cover) { $cover.Name } else { $null }
-                ResumeLastWriteTimeUtc = if ($resume) { $resume.LastWriteTimeUtc.ToString("o") } else { $null }
-                CoverLetterLastWriteTimeUtc = if ($cover) { $cover.LastWriteTimeUtc.ToString("o") } else { $null }
             })
         }
     }
