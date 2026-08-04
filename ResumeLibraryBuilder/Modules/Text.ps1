@@ -39,7 +39,8 @@ function Export-CombinedResumeText {
     param(
         [Parameter(Mandatory)]$Applications,
         [Parameter(Mandatory)][string]$OutputPath,
-        [Parameter(Mandatory)]$WordContext
+        [Parameter(Mandatory)]$WordContext,
+        [switch]$Append
     )
 
     $builder = New-Object System.Text.StringBuilder
@@ -59,8 +60,14 @@ function Export-CombinedResumeText {
     }
 
     Write-Progress -Activity "Building resume text file" -Completed
-    $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
-    Write-Log "Saved resume TXT: $OutputPath" "SUCCESS"
+    if ($Append -and (Test-Path -LiteralPath $OutputPath)) {
+        Add-Content -Path $OutputPath -Value $builder.ToString() -Encoding UTF8
+        Write-Log "Appended resume TXT: $OutputPath" "SUCCESS"
+    }
+    else {
+        $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
+        Write-Log "Saved resume TXT: $OutputPath" "SUCCESS"
+    }
 }
 
 function Export-CombinedCoverLetterText {
@@ -68,7 +75,8 @@ function Export-CombinedCoverLetterText {
     param(
         [Parameter(Mandatory)]$Applications,
         [Parameter(Mandatory)][string]$OutputPath,
-        [Parameter(Mandatory)]$WordContext
+        [Parameter(Mandatory)]$WordContext,
+        [switch]$Append
     )
 
     $builder = New-Object System.Text.StringBuilder
@@ -88,6 +96,12 @@ function Export-CombinedCoverLetterText {
     }
 
     Write-Progress -Activity "Building cover letter text file" -Completed
-    $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
-    Write-Log "Saved cover letter TXT: $OutputPath" "SUCCESS"
+    if ($Append -and (Test-Path -LiteralPath $OutputPath)) {
+        Add-Content -Path $OutputPath -Value $builder.ToString() -Encoding UTF8
+        Write-Log "Appended cover letter TXT: $OutputPath" "SUCCESS"
+    }
+    else {
+        $builder.ToString() | Set-Content -Path $OutputPath -Encoding UTF8
+        Write-Log "Saved cover letter TXT: $OutputPath" "SUCCESS"
+    }
 }

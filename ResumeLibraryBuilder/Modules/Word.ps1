@@ -100,11 +100,18 @@ function Export-CombinedResumeDocx {
         [Parameter(Mandatory)][double]$MarginTopInches,
         [Parameter(Mandatory)][double]$MarginBottomInches,
         [Parameter(Mandatory)][double]$MarginLeftInches,
-        [Parameter(Mandatory)][double]$MarginRightInches
+        [Parameter(Mandatory)][double]$MarginRightInches,
+        [switch]$Append
     )
 
     $word = $WordContext.Application
-    $document = $word.Documents.Add()
+    $document = if ($Append -and (Test-Path -LiteralPath $OutputPath)) {
+        Write-Log "Opening existing resume DOCX for append: $OutputPath" "INFO"
+        $word.Documents.Open($OutputPath)
+    }
+    else {
+        $word.Documents.Add()
+    }
 
     try {
         Set-DocumentMargins -Document $document `
@@ -152,11 +159,18 @@ function Export-CombinedCoverLetterDocx {
         [Parameter(Mandatory)][double]$MarginTopInches,
         [Parameter(Mandatory)][double]$MarginBottomInches,
         [Parameter(Mandatory)][double]$MarginLeftInches,
-        [Parameter(Mandatory)][double]$MarginRightInches
+        [Parameter(Mandatory)][double]$MarginRightInches,
+        [switch]$Append
     )
 
     $word = $WordContext.Application
-    $document = $word.Documents.Add()
+    $document = if ($Append -and (Test-Path -LiteralPath $OutputPath)) {
+        Write-Log "Opening existing cover letter DOCX for append: $OutputPath" "INFO"
+        $word.Documents.Open($OutputPath)
+    }
+    else {
+        $word.Documents.Add()
+    }
 
     try {
         Set-DocumentMargins -Document $document `
