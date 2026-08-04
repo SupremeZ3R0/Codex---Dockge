@@ -47,9 +47,19 @@ try {
         -ResumeTitle $ResumeTitle `
         -CoverLetterKeywords $CoverLetterKeywords `
         -SupportedExtensions $SupportedExtensions `
+        -ExistingRelativePaths $KnownRelativePaths `
         -PreferDocx:$PreferDocx
 
-    Write-Log "Found $($Applications.Count) job application folder(s)." "INFO"
+    if ($CanUseIncrementalScan) {
+        $Applications = @($ExistingApplications + $DiscoveredApplications) | Sort-Object Company, Job, RelativePath
+        $ResumeApplicationsToExport = @($DiscoveredApplications | Where-Object { $_.ResumePath })
+        $CoverLetterApplicationsToExport = @($DiscoveredApplications | Where-Object { $_.CoverLetterPath })
+    }
+    else {
+        $Applications = $DiscoveredApplications
+        $ResumeApplicationsToExport = @($Applications | Where-Object { $_.ResumePath })
+        $CoverLetterApplicationsToExport = @($Applications | Where-Object { $_.CoverLetterPath })
+    }
 
     $ExistingResumePaths = @{}
     $ExistingCoverLetterPaths = @{}
@@ -117,8 +127,8 @@ try {
             -WordContext $WordContext `
             -Append:$CanAppendCoverLetters
     }
-    finally {
-        Close-WordContext -WordContext $WordContext
+    else {
+        Write-Log "No new resumes or cover letters to add; combined outputs were left unchanged." "INFO"
     }
 
     Write-BuildStatistics -Applications $Applications -StartedAt $State.StartedAt
