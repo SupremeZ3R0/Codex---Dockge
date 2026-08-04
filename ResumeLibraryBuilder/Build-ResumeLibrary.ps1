@@ -35,15 +35,6 @@ try {
     Write-Log "Root folder: $RootFolder" "INFO"
     Write-Log "Output folder: $OutputFolder" "INFO"
 
-    $IndexPath = Join-Path $OutputFolder $ApplicationsIndexName
-    $ResumeDocxPath = Join-Path $OutputFolder $CombinedResumeDocxName
-    $ResumeTxtPath = Join-Path $OutputFolder $CombinedResumeTxtName
-    $CoverLetterDocxPath = Join-Path $OutputFolder $CombinedCoverLetterDocxName
-    $CoverLetterTxtPath = Join-Path $OutputFolder $CombinedCoverLetterTxtName
-
-    $HadPreviousIndex = Test-Path -Path $IndexPath -PathType Leaf
-    $PreviousApplications = Import-ApplicationsIndex -Path $IndexPath
-
     $Applications = Find-JobApplications -RootFolder $RootFolder `
         -ResumeTitle $ResumeTitle `
         -CoverLetterKeywords $CoverLetterKeywords `
@@ -52,70 +43,38 @@ try {
 
     Write-Log "Found $($Applications.Count) job application folder(s)." "INFO"
 
-    $NewResumeApplications = @(Get-NewDocumentApplications -CurrentApplications $Applications -PreviousApplications $PreviousApplications -DocumentType Resume)
-    $NewCoverLetterApplications = @(Get-NewDocumentApplications -CurrentApplications $Applications -PreviousApplications $PreviousApplications -DocumentType CoverLetter)
-
-    if (-not $HadPreviousIndex) {
-        Write-Log "No previous index is available. Rebuilding all combined outputs to avoid duplicates." "INFO"
-        foreach ($outputPath in @($ResumeDocxPath, $ResumeTxtPath, $CoverLetterDocxPath, $CoverLetterTxtPath)) {
-            if (Test-Path -Path $outputPath -PathType Leaf) { Remove-Item -Path $outputPath -Force }
-        }
-        $NewResumeApplications = @($Applications | Where-Object { $_.ResumePath })
-        $NewCoverLetterApplications = @($Applications | Where-Object { $_.CoverLetterPath })
-    }
-
-    if (-not (Test-Path -Path $ResumeDocxPath -PathType Leaf) -or -not (Test-Path -Path $ResumeTxtPath -PathType Leaf)) {
-        Write-Log "Resume outputs are missing or incomplete. Rebuilding resume outputs from all scanned resumes." "INFO"
-        if (Test-Path -Path $ResumeDocxPath -PathType Leaf) { Remove-Item -Path $ResumeDocxPath -Force }
-        if (Test-Path -Path $ResumeTxtPath -PathType Leaf) { Remove-Item -Path $ResumeTxtPath -Force }
-        $NewResumeApplications = @($Applications | Where-Object { $_.ResumePath })
-    }
-
-    if (-not (Test-Path -Path $CoverLetterDocxPath -PathType Leaf) -or -not (Test-Path -Path $CoverLetterTxtPath -PathType Leaf)) {
-        Write-Log "Cover-letter outputs are missing or incomplete. Rebuilding cover-letter outputs from all scanned cover letters." "INFO"
-        if (Test-Path -Path $CoverLetterDocxPath -PathType Leaf) { Remove-Item -Path $CoverLetterDocxPath -Force }
-        if (Test-Path -Path $CoverLetterTxtPath -PathType Leaf) { Remove-Item -Path $CoverLetterTxtPath -Force }
-        $NewCoverLetterApplications = @($Applications | Where-Object { $_.CoverLetterPath })
-    }
-
-    Write-Log "New or changed resumes to add: $($NewResumeApplications.Count)" "INFO"
-    Write-Log "New or changed cover letters to add: $($NewCoverLetterApplications.Count)" "INFO"
-
+    Export-ApplicationsIndex -Applications $Applications -OutputPath (Join-Path $OutputFolder $ApplicationsIndexName)
     Export-ScanReport -Applications $Applications -OutputPath (Join-Path $OutputFolder $ScanReportName)
 
     $WordContext = New-WordContext
     try {
-        Export-CombinedResumeDocx -Applications $NewResumeApplications `
-            -OutputPath $ResumeDocxPath `
+        Export-CombinedResumeDocx -Applications $Applications `
+            -OutputPath (Join-Path $OutputFolder $CombinedResumeDocxName) `
             -WordContext $WordContext `
             -MarginTopInches $ResumeDocMarginTopInches `
             -MarginBottomInches $ResumeDocMarginBottomInches `
             -MarginLeftInches $ResumeDocMarginLeftInches `
             -MarginRightInches $ResumeDocMarginRightInches
 
-        Export-CombinedResumeText -Applications $NewResumeApplications `
-            -OutputPath $ResumeTxtPath `
-            -WordContext $WordContext `
-            -Append
+        Export-CombinedResumeText -Applications $Applications `
+            -OutputPath (Join-Path $OutputFolder $CombinedResumeTxtName) `
+            -WordContext $WordContext
 
-        Export-CombinedCoverLetterDocx -Applications $NewCoverLetterApplications `
-            -OutputPath $CoverLetterDocxPath `
+        Export-CombinedCoverLetterDocx -Applications $Applications `
+            -OutputPath (Join-Path $OutputFolder $CombinedCoverLetterDocxName) `
             -WordContext $WordContext `
             -MarginTopInches $CoverLetterDocMarginTopInches `
             -MarginBottomInches $CoverLetterDocMarginBottomInches `
             -MarginLeftInches $CoverLetterDocMarginLeftInches `
             -MarginRightInches $CoverLetterDocMarginRightInches
 
-        Export-CombinedCoverLetterText -Applications $NewCoverLetterApplications `
-            -OutputPath $CoverLetterTxtPath `
-            -WordContext $WordContext `
-            -Append
+        Export-CombinedCoverLetterText -Applications $Applications `
+            -OutputPath (Join-Path $OutputFolder $CombinedCoverLetterTxtName) `
+            -WordContext $WordContext
     }
     finally {
         Close-WordContext -WordContext $WordContext
     }
-
-    Export-ApplicationsIndex -Applications $Applications -OutputPath $IndexPath
 
     Write-BuildStatistics -Applications $Applications -StartedAt $State.StartedAt
     Write-Log "Done." "SUCCESS"
