@@ -43,18 +43,23 @@ try {
 
     $ExistingApplications = @(Import-ApplicationsIndex -InputPath $ApplicationsIndexPath)
 
-    $CanUseIncrementalScan = $ExistingApplications.Count -gt 0 -and `
-        (Test-Path -LiteralPath $CombinedResumeDocxPath) -and `
-        (Test-Path -LiteralPath $CombinedResumeTxtPath) -and `
-        (Test-Path -LiteralPath $CombinedCoverLetterDocxPath) -and `
-        (Test-Path -LiteralPath $CombinedCoverLetterTxtPath)
+    $CanAppendResumeDocx = $ExistingApplications.Count -gt 0 -and (Test-Path -LiteralPath $CombinedResumeDocxPath)
+    $CanAppendResumeText = $ExistingApplications.Count -gt 0 -and (Test-Path -LiteralPath $CombinedResumeTxtPath)
+    $CanAppendCoverLetterDocx = $ExistingApplications.Count -gt 0 -and (Test-Path -LiteralPath $CombinedCoverLetterDocxPath)
+    $CanAppendCoverLetterText = $ExistingApplications.Count -gt 0 -and (Test-Path -LiteralPath $CombinedCoverLetterTxtPath)
+
+    $CanSkipKnownFolders = $CanAppendResumeDocx -and $CanAppendResumeText -and $CanAppendCoverLetterDocx -and $CanAppendCoverLetterText
 
     $ExistingRelativePaths = @{}
+    $ExistingResumePaths = @{}
+    $ExistingCoverLetterPaths = @{}
     foreach ($application in $ExistingApplications) {
         if ($application.RelativePath) { $ExistingRelativePaths[$application.RelativePath] = $true }
+        if ($application.ResumePath) { $ExistingResumePaths[$application.ResumePath] = $true }
+        if ($application.CoverLetterPath) { $ExistingCoverLetterPaths[$application.CoverLetterPath] = $true }
     }
 
-    $KnownRelativePaths = if ($CanUseIncrementalScan) { $ExistingRelativePaths } else { $null }
+    $KnownRelativePaths = if ($CanSkipKnownFolders) { $ExistingRelativePaths } else { $null }
     $DiscoveredApplications = Find-JobApplications -RootFolder $RootFolder `
         -ResumeTitle $ResumeTitle `
         -CoverLetterKeywords $CoverLetterKeywords `
@@ -62,32 +67,38 @@ try {
         -ExistingRelativePaths $KnownRelativePaths `
         -PreferDocx:$PreferDocx
 
-    if ($CanUseIncrementalScan) {
+    if ($CanSkipKnownFolders) {
         $Applications = @($ExistingApplications + $DiscoveredApplications) | Sort-Object Company, Job, RelativePath
-        $ResumeApplicationsToExport = @($DiscoveredApplications | Where-Object { $_.ResumePath })
-        $CoverLetterApplicationsToExport = @($DiscoveredApplications | Where-Object { $_.CoverLetterPath })
     }
     else {
         $Applications = $DiscoveredApplications
-        $ResumeApplicationsToExport = @($Applications | Where-Object { $_.ResumePath })
-        $CoverLetterApplicationsToExport = @($Applications | Where-Object { $_.CoverLetterPath })
     }
 
+    $NewResumeApplications = @($Applications | Where-Object { $_.ResumePath -and -not $ExistingResumePaths.ContainsKey($_.ResumePath) })
+    $NewCoverLetterApplications = @($Applications | Where-Object { $_.CoverLetterPath -and -not $ExistingCoverLetterPaths.ContainsKey($_.CoverLetterPath) })
+
+    $ResumeDocxApplicationsToExport = if ($CanAppendResumeDocx) { $NewResumeApplications } else { @($Applications | Where-Object { $_.ResumePath }) }
+    $ResumeTextApplicationsToExport = if ($CanAppendResumeText) { $NewResumeApplications } else { @($Applications | Where-Object { $_.ResumePath }) }
+    $CoverLetterDocxApplicationsToExport = if ($CanAppendCoverLetterDocx) { $NewCoverLetterApplications } else { @($Applications | Where-Object { $_.CoverLetterPath }) }
+    $CoverLetterTextApplicationsToExport = if ($CanAppendCoverLetterText) { $NewCoverLetterApplications } else { @($Applications | Where-Object { $_.CoverLetterPath }) }
+
     Write-Log "Found $($Applications.Count) total job application folder(s)." "INFO"
+    Write-Log "Scanned $(if ($CanSkipKnownFolders) { 'only new folders' } else { 'all folders because at least one combined output must be rebuilt' })." "INFO"
     Write-Log "New job application folder(s) to export: $($DiscoveredApplications.Count)" "INFO"
 
-    $CanAppendResumes = $CanUseIncrementalScan
-    $CanAppendCoverLetters = $CanUseIncrementalScan
-
-    Write-Log "Resume export mode: $(if ($CanAppendResumes) { 'append new files only' } else { 'rebuild all resumes' })" "INFO"
-    Write-Log "Resume file(s) to add: $($ResumeApplicationsToExport.Count)" "INFO"
-    Write-Log "Cover-letter export mode: $(if ($CanAppendCoverLetters) { 'append new files only' } else { 'rebuild all cover letters' })" "INFO"
-    Write-Log "Cover-letter file(s) to add: $($CoverLetterApplicationsToExport.Count)" "INFO"
+    Write-Log "Resume DOCX export mode: $(if ($CanAppendResumeDocx) { 'append new files only' } else { 'rebuild all resumes' })" "INFO"
+    Write-Log "Resume DOCX file(s) to add: $($ResumeDocxApplicationsToExport.Count)" "INFO"
+    Write-Log "Resume TXT export mode: $(if ($CanAppendResumeText) { 'append new files only' } else { 'rebuild all resumes' })" "INFO"
+    Write-Log "Resume TXT file(s) to add: $($ResumeTextApplicationsToExport.Count)" "INFO"
+    Write-Log "Cover-letter DOCX export mode: $(if ($CanAppendCoverLetterDocx) { 'append new files only' } else { 'rebuild all cover letters' })" "INFO"
+    Write-Log "Cover-letter DOCX file(s) to add: $($CoverLetterDocxApplicationsToExport.Count)" "INFO"
+    Write-Log "Cover-letter TXT export mode: $(if ($CanAppendCoverLetterText) { 'append new files only' } else { 'rebuild all cover letters' })" "INFO"
+    Write-Log "Cover-letter TXT file(s) to add: $($CoverLetterTextApplicationsToExport.Count)" "INFO"
 
     Export-ApplicationsIndex -Applications $Applications -OutputPath $ApplicationsIndexPath
     Export-ScanReport -Applications $Applications -OutputPath (Join-Path $OutputFolder $ScanReportName)
 
-    $HasExports = $ResumeApplicationsToExport.Count -gt 0 -or $CoverLetterApplicationsToExport.Count -gt 0
+    $HasExports = $ResumeDocxApplicationsToExport.Count -gt 0 -or $ResumeTextApplicationsToExport.Count -gt 0 -or $CoverLetterDocxApplicationsToExport.Count -gt 0 -or $CoverLetterTextApplicationsToExport.Count -gt 0
     if (-not $HasExports) {
         Write-Log "No new resumes or cover letters to add; combined outputs were left unchanged." "INFO"
     }
@@ -96,42 +107,50 @@ try {
         try {
             $WordContext = New-WordContext
 
-            if ($ResumeApplicationsToExport.Count -gt 0) {
-                Export-CombinedResumeDocx -Applications $ResumeApplicationsToExport `
+            if ($ResumeDocxApplicationsToExport.Count -gt 0 -or $ResumeTextApplicationsToExport.Count -gt 0) {
+                if ($ResumeDocxApplicationsToExport.Count -gt 0) {
+                    Export-CombinedResumeDocx -Applications $ResumeDocxApplicationsToExport `
                     -OutputPath $CombinedResumeDocxPath `
                     -WordContext $WordContext `
                     -MarginTopInches $ResumeDocMarginTopInches `
                     -MarginBottomInches $ResumeDocMarginBottomInches `
                     -MarginLeftInches $ResumeDocMarginLeftInches `
                     -MarginRightInches $ResumeDocMarginRightInches `
-                    -Append:$CanAppendResumes
+                    -Append:$CanAppendResumeDocx
+                }
 
-                Export-CombinedResumeText -Applications $ResumeApplicationsToExport `
+                if ($ResumeTextApplicationsToExport.Count -gt 0) {
+                    Export-CombinedResumeText -Applications $ResumeTextApplicationsToExport `
                     -OutputPath $CombinedResumeTxtPath `
                     -WordContext $WordContext `
-                    -Append:$CanAppendResumes
+                    -Append:$CanAppendResumeText
+                }
             }
             else {
-                Write-Log "No new resumes to add." "INFO"
+                Write-Log "No resume exports are needed." "INFO"
             }
 
-            if ($CoverLetterApplicationsToExport.Count -gt 0) {
-                Export-CombinedCoverLetterDocx -Applications $CoverLetterApplicationsToExport `
+            if ($CoverLetterDocxApplicationsToExport.Count -gt 0 -or $CoverLetterTextApplicationsToExport.Count -gt 0) {
+                if ($CoverLetterDocxApplicationsToExport.Count -gt 0) {
+                    Export-CombinedCoverLetterDocx -Applications $CoverLetterDocxApplicationsToExport `
                     -OutputPath $CombinedCoverLetterDocxPath `
                     -WordContext $WordContext `
                     -MarginTopInches $CoverLetterDocMarginTopInches `
                     -MarginBottomInches $CoverLetterDocMarginBottomInches `
                     -MarginLeftInches $CoverLetterDocMarginLeftInches `
                     -MarginRightInches $CoverLetterDocMarginRightInches `
-                    -Append:$CanAppendCoverLetters
+                    -Append:$CanAppendCoverLetterDocx
+                }
 
-                Export-CombinedCoverLetterText -Applications $CoverLetterApplicationsToExport `
+                if ($CoverLetterTextApplicationsToExport.Count -gt 0) {
+                    Export-CombinedCoverLetterText -Applications $CoverLetterTextApplicationsToExport `
                     -OutputPath $CombinedCoverLetterTxtPath `
                     -WordContext $WordContext `
-                    -Append:$CanAppendCoverLetters
+                    -Append:$CanAppendCoverLetterText
+                }
             }
             else {
-                Write-Log "No new cover letters to add." "INFO"
+                Write-Log "No cover-letter exports are needed." "INFO"
             }
         }
         finally {

@@ -53,7 +53,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 ## Incremental runs
 
-After the first successful run, the builder reads `Applications_Index.json` before scanning for files. When the JSON index and all combined Word/text outputs exist, it treats the indexed `Company\Job` relative paths as already processed, skips opening those folders, scans only new folders, and appends only those newly discovered resume or cover-letter files. If the JSON index or any combined output is missing or unreadable, the script safely falls back to a full rebuild.
+After the first successful run, the builder reads `Applications_Index.json` before scanning for files. When the JSON index and all combined Word/text outputs exist, it treats the indexed `Company\Job` relative paths as already processed, skips opening those folders, scans only new folders, and appends only those newly discovered resume or cover-letter files. Append/rebuild decisions are made separately for resume DOCX, resume TXT, cover-letter DOCX, and cover-letter TXT outputs, so a missing cover-letter output will not force the combined resume DOCX to be rebuilt. If the JSON index or a specific combined output is missing or unreadable, that output safely falls back to a full rebuild.
 
 ## Notes
 
